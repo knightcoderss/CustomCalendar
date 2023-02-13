@@ -2,6 +2,7 @@ package `in`.gowebs.customcalendar
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -30,7 +31,13 @@ class AttendanceActivity : AppCompatActivity() {
         databinding = DataBindingUtil.setContentView(this, R.layout.activity_attendance)
         initializeUI()
 //        setMonth(attendanceModel)
-        getMonth()
+        aList.add(getMonth(currentItem))
+        if (aList.size == 1) {
+            aList.add(getMonth(currentItem + 1))
+        }
+        viewPagerAdapter.notifyDataSetChanged()
+        val selectedCountTV: TextView = findViewById(R.id.selected_count_tv)
+
 
     }
 
@@ -52,13 +59,9 @@ class AttendanceActivity : AppCompatActivity() {
 
             override fun onPageSelected(position: Int) {
                 currentItem = position
-                if (position >= lastPosition) {
+                if (position > lastPosition) {
                     lastPosition = position
-                    setMonth(attendanceModel)
-                }
-                if (aListRemoveAt) {
-                    aListRemoveAt = false
-                    aList.removeAt(0)
+                    aList.add(getMonth(currentItem + 1))
                     viewPagerAdapter.notifyDataSetChanged()
                 }
             }
@@ -70,23 +73,12 @@ class AttendanceActivity : AppCompatActivity() {
             page.scaleX = scaleFactor
             page.scaleY = scaleFactor
             if (abs(position) < 0.01f) {
-                Toast.makeText(this@AttendanceActivity, "$position", Toast.LENGTH_SHORT).show()
+
             }
         }
     }
 
-    private fun setMonth(data: AttendanceModel) {
-        val calendar = getCalendarWithCurrentMonthMinusPosition(currentItem)
-        val currentMonthYear = getCurrentMonthYearString(calendar)
-        val firstDayOfMonth = calendar.get(Calendar.DAY_OF_WEEK) - 1
-        val maxDaysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-        populateDays(data, maxDaysInMonth, firstDayOfMonth)
-        aList.add(AttendanceModel(data = data.data, monthName = "$currentMonthYear ${calendar.get(Calendar.YEAR)} "))
-        if (aList.size == 1) { aList.add(0, AttendanceModel(data = data.data, monthName = "$currentMonthYear ${calendar.get(Calendar.YEAR)} ")) }
-        viewPagerAdapter.notifyDataSetChanged()
-    }
-
-    private fun getMonth(): AttendanceModel {
+    private fun getMonth(currentItem: Int): AttendanceModel {
         val calendar = getCalendarWithCurrentMonthMinusPosition(currentItem)
         val currentMonthYear = getCurrentMonthYearString(calendar)
         val currentYear = calendar.get(Calendar.YEAR)
@@ -114,37 +106,21 @@ class AttendanceActivity : AppCompatActivity() {
             .uppercase(Locale.getDefault())
     }
 
-    private fun populateDays(data: AttendanceModel, maxDaysInMonth: Int, firstDayOfMonth: Int) {
-        var count = 0
-        var count2 = 1
-        while (count < maxDaysInMonth + firstDayOfMonth) {
-            if (firstDayOfMonth > count) {
-                data.data.add(count, AttendanceModel.DayEvent())
-            } else {
-                val day = if (count2 < 10) "0$count2" else "$count2"
-                if (data.data.size <= count) {
-                    data.data.add(AttendanceModel.DayEvent(day))
-                } else {
-                    data.data[count].day = day
-                }
-                count2++
-            }
-            count++
-        }
-    }
 
     private fun populateDays(
         maxDaysInMonth: Int,
         firstDayOfMonth: Int,
     ): ArrayList<AttendanceModel.DayEvent> {
         var count = 0
+        var date = 1
         val mList = ArrayList<AttendanceModel.DayEvent>()
         while (count < maxDaysInMonth + firstDayOfMonth) {
             if (firstDayOfMonth > count) {
                 mList.add(count, AttendanceModel.DayEvent())
             } else {
-                val day = if ((count + 1) < 10) "0${count + 1}" else "${count + 1}"
+                val day = if ((date) < 10) "0${date}" else "$date"
                 mList.add(AttendanceModel.DayEvent(day))
+                date++
             }
             count++
         }

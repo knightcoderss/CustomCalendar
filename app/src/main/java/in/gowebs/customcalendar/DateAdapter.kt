@@ -2,6 +2,7 @@ package `in`.gowebs.customcalendar
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,8 @@ import `in`.gowebs.customcalendar.databinding.DaysItemsBinding
 class DateAdapter(val context: Context, private val mList: ArrayList<AttendanceModel.DayEvent>) :
     RecyclerView.Adapter<DateAdapter.InnerItemViewHolder>() {
 
+    var selectedPositions = mutableSetOf<Int>()
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): InnerItemViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val binding = DaysItemsBinding.inflate(inflater, parent, false)
@@ -20,7 +23,16 @@ class DateAdapter(val context: Context, private val mList: ArrayList<AttendanceM
     }
 
     override fun onBindViewHolder(holder: InnerItemViewHolder, position: Int) {
-        holder.bind(mList[position])
+        holder.bind(mList[position], selectedPositions.contains(position))
+        holder.itemView.setOnClickListener {
+            if (selectedPositions.contains(position)) {
+                selectedPositions.remove(position)
+                holder.onItemClear()
+            } else {
+                selectedPositions.add(position)
+                holder.onItemSelected()
+            }
+        }
     }
 
     override fun getItemCount(): Int {
@@ -30,7 +42,17 @@ class DateAdapter(val context: Context, private val mList: ArrayList<AttendanceM
     inner class InnerItemViewHolder(val binding: DaysItemsBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(day: AttendanceModel.DayEvent) {
+        fun onItemSelected() {
+            itemView.background =
+                ContextCompat.getDrawable(itemView.context, R.drawable.red_circle_background)
+            binding.oneMFirstRowTv.setTextColor(Color.WHITE)
+        }
+
+        fun onItemClear() {
+            itemView.background = null
+            binding.oneMFirstRowTv.setTextColor(ContextCompat.getColor(binding.oneMFirstRowTv.context, R.color.black))
+        }
+        fun bind(day: AttendanceModel.DayEvent, contains: Boolean) {
             binding.xmlCalenderLayoutRow2 = day
             binding.executePendingBindings()
             if ((adapterPosition) % 7 == 0) {

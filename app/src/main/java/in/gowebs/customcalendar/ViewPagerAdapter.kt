@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.viewpager.widget.PagerAdapter
 import `in`.gowebs.customcalendar.databinding.CalenderLayoutRowBinding
 
@@ -20,16 +21,18 @@ class ViewPagerAdapter(val context: Context, private var mList: ArrayList<Attend
         val binding = CalenderLayoutRowBinding.inflate(inflater, container, false)
         container.addView(binding.root)
 
-        binding.monthRecycler.adapter = DateAdapter(context, mList[position].data)
+        val adapter = DateAdapter(context, mList[position].data)
+        binding.monthRecycler.adapter = adapter
         binding.monthRecycler.layoutManager = GridLayoutManager(context, 7)
         binding.xmlCalenderLayoutRow = mList[position]
+        val itemTouchHelper = ItemTouchHelper(ItemTouchHelperCallback(adapter))
+        itemTouchHelper.attachToRecyclerView(binding.monthRecycler)
+
         return binding.root
     }
 
     override fun destroyItem(container: ViewGroup, position: Int, ob: Any) {
         container.removeView(ob as RelativeLayout)
     }
-
-
 }
 
